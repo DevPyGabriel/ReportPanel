@@ -71,17 +71,17 @@ export const ReportListPage = () => {
                   <div className="flex space-x-2 ml-4">
                     <button
                       onClick={() => handleViewReport(report)}
-                      className="px-3 py-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors flex items-center gap-1"
+                      className="px-3 py-2 bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors items-center gap-1 hidden"
                     >
                       <Icon.ReportList className="w-4 h-4" />
                       Ver
                     </button>
                     <button
                       onClick={() => handleEditReport(report)}
-                      className="px-3 py-2 bg-yellow-100 text-yellow-600 rounded hover:bg-yellow-200/70 transition-colors flex items-center gap-1"
+                      className="px-3 py-2 bg-sky-100 text-sky-600 rounded hover:bg-sky-200/70 transition-colors flex items-center gap-1"
                     >
                       <Icon.CreateReport className="w-4 h-4" />
-                      Editar
+                      Ver / Editar 
                     </button>
                     <button
                       onClick={() => handleDeleteReport(report.id)}

@@ -1,12 +1,21 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import * as XLSX from "xlsx";
+import * as XLSX from "xlsx-js-style";
 import * as Icon from "../components/Icons";
 
+/**
+ * Página principal para crear y editar reportes de vaciado.
+ * Incluye formularios para información general, piezas y materia prima.
+ * Permite guardar reportes localmente y exportar a Excel.
+ */
 export const CreateReportPage = () => {
+  // Referencia para generar IDs únicos para filas
   const nextId = useRef(1);
+  // Estado para filas de materia prima
   const [rows, setRows] = useState([{ id: 0, material: "", kilos: "" }]);
+  // Referencia al último input para foco automático
   const lastRowInputRef = useRef(null);
+  // Hooks de React Router para navegación y estado
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -20,7 +29,16 @@ export const CreateReportPage = () => {
     observation: "",
   });
 
-  // Estado para los grids de piezas (inicialmente uno con datos)
+  // Estado para indicadores
+  const [indicators, setIndicators] = useState({
+    kgsArenaMolde: "",
+    kgsArenaTotal: "",
+    escoria: "",
+    fundido: "",
+    bruto: "",
+    neto: "",
+    retorno: "",
+  });
   const [pieceGrids, setPieceGrids] = useState([
     {
       id: 0,
@@ -43,14 +61,63 @@ export const CreateReportPage = () => {
   const [editingReport, setEditingReport] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
 
-  // Cargar reporte para edición si viene desde ReportListPage
+  // Cargar reporte para edición si viene desde ReportListPage o limpiar si es nuevo
   useEffect(() => {
     if (location.state?.editingReport) {
       const report = location.state.editingReport;
       setGeneralInfo(report.data.generalInfo);
+      setIndicators(
+        report.data.indicators || {
+          kgsArenaMolde: "",
+          kgsArenaTotal: "",
+          escoria: "",
+          fundido: "",
+          bruto: "",
+          neto: "",
+          retorno: "",
+        },
+      );
       setPieceGrids(report.data.pieceGrids);
       setRows(report.data.rows);
       setEditingReport(report);
+      setIsReadOnly(false);
+    } else {
+      // Limpiar formulario si se accede sin estado (Crear nuevo reporte)
+      setGeneralInfo({
+        fecha: new Date().toISOString().split("T")[0],
+        colada: "",
+        operador: "Adelis Vielma",
+        material: "",
+        params: "",
+        observation: "",
+      });
+      setIndicators({
+        kgsArenaMolde: "",
+        kgsArenaTotal: "",
+        escoria: "",
+        fundido: "",
+        bruto: "",
+        neto: "",
+        retorno: "",
+      });
+      setPieceGrids([
+        {
+          id: 0,
+          cliente: "",
+          codigo: "",
+          descripcion: "",
+          odp: "",
+          serial: "",
+          cantPiezas: "",
+          cantMoldes: "",
+          pesoBruto: "",
+          pesoNeto: "",
+          totalBruto: "",
+          totalNeto: "",
+        },
+      ]);
+      setRows([{ id: 0, material: "", kilos: "" }]);
+      setEditingReport(null);
       setIsReadOnly(false);
     }
   }, [location.state]);
@@ -67,9 +134,15 @@ export const CreateReportPage = () => {
   }, []);
 
   // Función para guardar reporte
+  /**
+   * Guarda el reporte actual en localStorage.
+   * Si es edición, actualiza el reporte existente; sino, crea uno nuevo.
+   * Limpia el formulario después de guardar y navega si era edición.
+   */
   const handleSaveReport = () => {
     const reportData = {
       generalInfo,
+      indicators,
       pieceGrids,
       rows,
     };
@@ -91,6 +164,15 @@ export const CreateReportPage = () => {
       material: "",
       params: "",
       observation: "",
+    });
+    setIndicators({
+      kgsArenaMolde: "",
+      kgsArenaTotal: "",
+      escoria: "",
+      fundido: "",
+      bruto: "",
+      neto: "",
+      retorno: "",
     });
     setPieceGrids([
       {
@@ -118,20 +200,38 @@ export const CreateReportPage = () => {
   };
 
   // Función para exportar a Excel
+  /**
+   * Exporta el reporte actual a un archivo Excel (.xlsx).
+   * Genera una hoja con formato tabular, incluyendo headers, datos y estilos.
+   * Usa la librería XLSX para crear y descargar el archivo.
+   */
   const handleExportExcel = () => {
     const reportData = {
       generalInfo,
+      indicators,
       pieceGrids,
       rows,
     };
     const wsData = [
-      ["Campo", "Valor"],
-      ["Fecha", reportData.generalInfo.fecha],
-      ["Colada", reportData.generalInfo.colada],
-      ["Operador", reportData.generalInfo.operador],
-      ["Material", reportData.generalInfo.material],
+      [
+        null,
+        null,
+        null,
+        "Fecha",
+        reportData.generalInfo.fecha,
+        "Operador",
+        reportData.generalInfo.operador,
+      ],
+      [
+        null,
+        null,
+        null,
+        "Colada",
+        reportData.generalInfo.colada,
+        "Material",
+        reportData.generalInfo.material,
+      ],
       [],
-      ["Piezas"],
       [
         "Cliente",
         "Código",
@@ -159,14 +259,108 @@ export const CreateReportPage = () => {
         grid.totalNeto,
       ]),
       [],
+      ["Parametros de Vaciado", null, "Observaciones", null, "Kgs arena molde", "Kgs arena total", "Escoria", "Fundido", "Bruto", "Neto", "Retorno"],
+      [reportData.generalInfo.params, null, reportData.generalInfo.observation, null, reportData.indicators.kgsArenaMolde, reportData.indicators.kgsArenaTotal, reportData.indicators.escoria, reportData.indicators.fundido, reportData.indicators.bruto, reportData.indicators.neto, reportData.indicators.retorno],
+      [],
       ["Materia Prima"],
       ["Material", "Kilos"],
       ...reportData.rows.map((row) => [row.material, row.kilos]),
       [],
-      ["Parametros de Vaciado", "Observaciones"],
-      [reportData.generalInfo.params, reportData.generalInfo.observation]
     ];
+
     const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    const paramDataRowIndex = 5 + reportData.pieceGrids.length;
+
+    // Calcular auto-fit para las columnas
+    const colWidths = Array(11).fill(0);
+    wsData.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        if (cell == null) return;
+        const cellValue = cell.toString();
+        // Ignorar el texto largo para que no afecte el cálculo
+        if (
+          rowIndex === paramDataRowIndex &&
+          (colIndex === 0 || colIndex === 2)
+        )
+          return;
+        colWidths[colIndex] = Math.max(
+          colWidths[colIndex] || 0,
+          cellValue.length,
+        );
+      });
+    });
+
+    ws["!cols"] = colWidths.map((w, colIndex) => {
+      if (colIndex === 0) return { wch: 40 }; // A fijo
+      if (colIndex === 1) return { wch: Math.max(15, (w || 10) + 2) }; // B min 15
+      if (colIndex === 2) return { wch: 30 }; // C fijo
+      return { wch: (w || 10) + 2 }; // Resto auto-fit
+    });
+
+    ws["!rows"] = [];
+
+    const titles = [
+      "Fecha",
+      "Operador",
+      "Colada",
+      "Material",
+      "Piezas",
+      "Cliente",
+      "Código",
+      "Descripción",
+      "ODP",
+      "Serial",
+      "Cant. Piezas",
+      "Cant. Moldes",
+      "Peso Bruto",
+      "Peso Neto",
+      "Total Bruto",
+      "Total Neto",
+      "Materia Prima",
+      "Kilos",
+      "Parametros de Vaciado",
+      "Observaciones",
+      "Kgs arena molde",
+      "Kgs arena total",
+      "Escoria",
+      "Fundido",
+      "Bruto",
+      "Neto",
+      "Retorno",
+    ];
+
+    for (const key in ws) {
+      if (key.startsWith("!")) continue;
+
+      if (ws[key]) {
+        const cellAddress = XLSX.utils.decode_cell(key);
+        const isParamDataRow = cellAddress.r === paramDataRowIndex;
+
+        const isTitle = titles.includes(ws[key].v);
+        ws[key].s = {
+          font: {
+            color: { rgb: "000000" },
+            bold: isTitle,
+          },
+          border: {
+            top: { style: "thin", color: { rgb: "000000" } },
+            bottom: { style: "thin", color: { rgb: "000000" } },
+            left: { style: "thin", color: { rgb: "000000" } },
+            right: { style: "thin", color: { rgb: "000000" } },
+          },
+        };
+
+        if (isParamDataRow) {
+          ws[key].s.alignment = {
+            wrapText: true,
+            vertical: "top",
+            horizontal: "left",
+          };
+        }
+      }
+    }
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Reporte");
     XLSX.writeFile(wb, "reporte.xlsx");
@@ -210,6 +404,10 @@ export const CreateReportPage = () => {
 
   const updateGeneralInfo = (field, value) => {
     setGeneralInfo((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const updateIndicators = (field, value) => {
+    setIndicators((prev) => ({ ...prev, [field]: value }));
   };
 
   const updatePieceGrid = (gridId, field, value) => {
@@ -577,6 +775,106 @@ export const CreateReportPage = () => {
         </div>
       </div>
 
+      <div className="grid grid-cols-4 grid-rows-2 w-full gap-2 py-4">
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Kgs arena molde</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.kgsArenaMolde}
+            onChange={(e) => updateIndicators("kgsArenaMolde", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Kgs arena total</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.kgsArenaTotal}
+            onChange={(e) => updateIndicators("kgsArenaTotal", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Escoria</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.escoria}
+            onChange={(e) => updateIndicators("escoria", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Fundido</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.fundido}
+            onChange={(e) => updateIndicators("fundido", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Bruto</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.bruto}
+            onChange={(e) => updateIndicators("bruto", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Neto</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.neto}
+            onChange={(e) => updateIndicators("neto", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+
+        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+          <div className="text-neutral-950/40 text-sm">Retorno</div>
+          <input
+            type="number"
+            min="0"
+            step="any"
+            value={indicators.retorno}
+            onChange={(e) => updateIndicators("retorno", e.target.value)}
+            placeholder="0.00"
+            className="font-semibold bg-transparent outline-none text-left"
+            readOnly={isReadOnly}
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 w-full gap-3">
         <div className="p-4 w-full bg-white small-shadow rounded-md">
           <div className="pb-2">
@@ -624,15 +922,20 @@ export const CreateReportPage = () => {
       {/* Botones de acción */}
       <div className="flex gap-4 mt-4">
         <button
-          onClick={handleSaveReport}
-          className="bg-sky-500 text-white px-4 py-2 rounded hover:bg-sky-600 cursor-pointer"
+          onClick={() => {
+            handleSaveReport();
+            handleExportExcel();
+          }}
+          className="bg-sky-500 text-white px-2 pr-3 flex items-center gap-x-1 py-2 rounded hover:bg-sky-600 cursor-pointer"
         >
+          <Icon.Save className="w-4 h-4" />
           {editingReport ? "Actualizar Reporte" : "Guardar Reporte"}
         </button>
         <button
           onClick={handleExportExcel}
-          className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer"
+          className="bg-green-600 text-white px-2 pr-3 py-2 rounded hover:bg-green-700 cursor-pointer flex items-center gap-x-1 hidden"
         >
+          <Icon.Export className="w-4 h-4" />
           Exportar a Excel
         </button>
       </div>
