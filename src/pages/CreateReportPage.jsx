@@ -933,7 +933,7 @@ export const CreateReportPage = () => {
         </button>
         <button
           onClick={handleExportExcel}
-          className="bg-green-600 text-white px-2 pr-3 py-2 rounded hover:bg-green-700 cursor-pointer flex items-center gap-x-1 hidden"
+          className="bg-green-600 text-white px-2 pr-3 py-2 rounded hover:bg-green-700 cursor-pointer flex items-center gap-x-1"
         >
           <Icon.Export className="w-4 h-4" />
           Exportar a Excel
