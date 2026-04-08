@@ -15,7 +15,7 @@ export const Sidebar = ({ onLogout }) => {
           <Icon.ReportList />
           <div className=''>Lista de Reportes</div>
         </a>
-        <a href='/reportAnalytics' className='w-full flex items-center p-3 gap-x-1 bg-green-100/70 rounded-md text-green-600 hover:bg-green-200/70 hover:text-green-700 transition-all duration-200'>
+        <a href='#' className='w-full flex items-center p-3 gap-x-1 bg-green-100/70 rounded-md text-green-600 hover:bg-green-200/70 hover:text-green-700 transition-all duration-200 hidden'>
           <Icon.ReportAnalisis />
           <div className=''>Analisis de Reporte</div>
         </a>

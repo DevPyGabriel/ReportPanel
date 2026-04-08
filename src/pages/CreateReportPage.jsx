@@ -12,7 +12,9 @@ export const CreateReportPage = () => {
   // Referencia para generar IDs únicos para filas
   const nextId = useRef(1);
   // Estado para filas de materia prima
-  const [rows, setRows] = useState([{ id: 0, material: "", kilos: "" }]);
+  const [rows, setRows] = useState([
+    { id: 0, material: "", codigo: "", kilos: "" },
+  ]);
   // Referencia al último input para foco automático
   const lastRowInputRef = useRef(null);
   // Hooks de React Router para navegación y estado
@@ -53,6 +55,7 @@ export const CreateReportPage = () => {
       pesoNeto: "",
       totalBruto: "",
       totalNeto: "",
+      totalArenaCliente: "",
     },
   ]);
 
@@ -114,13 +117,78 @@ export const CreateReportPage = () => {
           pesoNeto: "",
           totalBruto: "",
           totalNeto: "",
+          totalArenaCliente: "",
         },
       ]);
-      setRows([{ id: 0, material: "", kilos: "" }]);
+      setRows([{ id: 0, material: "", codigo: "", kilos: "" }]);
       setEditingReport(null);
       setIsReadOnly(false);
     }
   }, [location.state]);
+
+  // Calcular valores derivados
+  useEffect(() => {
+    const kgsArenaTotal = pieceGrids.reduce((sum, grid) => {
+      const kgsArenaMolde = parseFloat(grid.kgsArenaMolde || 0);
+      const cantMoldes = parseFloat(grid.cantMoldes || 0);
+      return sum + kgsArenaMolde * cantMoldes;
+    }, 0);
+
+    const fundido = rows.reduce(
+      (sum, row) => sum + parseFloat(row.kilos || 0),
+      0,
+    );
+
+    const bruto = pieceGrids.reduce(
+      (sum, grid) => sum + parseFloat(grid.totalBruto || 0),
+      0,
+    );
+
+    const neto = pieceGrids.reduce(
+      (sum, grid) => sum + parseFloat(grid.totalNeto || 0),
+      0,
+    );
+
+    const escoria = 0.07 * fundido;
+
+    const retorno = fundido - escoria - neto;
+
+    setIndicators((prev) => ({
+      ...prev,
+      kgsArenaTotal: kgsArenaTotal.toFixed(2),
+      fundido: fundido.toFixed(2),
+      bruto: bruto.toFixed(2),
+      neto: neto.toFixed(2),
+      escoria: escoria.toFixed(2),
+      retorno: retorno.toFixed(2),
+    }));
+  }, [pieceGrids, rows]);
+
+  // Calcular totales por cliente
+  useEffect(() => {
+    setPieceGrids((prev) =>
+      prev.map((grid) => {
+        const cantPiezas = parseFloat(grid.cantPiezas || 0);
+        const pesoBruto = parseFloat(grid.pesoBruto || 0);
+        const pesoNeto = parseFloat(grid.pesoNeto || 0);
+        const cantMoldes = parseFloat(grid.cantMoldes || 0);
+        const kgsArenaMolde = parseFloat(grid.kgsArenaMolde || 0);
+        return {
+          ...grid,
+          totalBruto: (pesoBruto * cantPiezas).toFixed(2),
+          totalNeto: (pesoNeto * cantPiezas).toFixed(2),
+          totalArenaCliente: (kgsArenaMolde * cantMoldes).toFixed(2),
+        };
+      }),
+    );
+  }, [
+    pieceGrids
+      .map(
+        (g) =>
+          `${g.cantPiezas}-${g.pesoBruto}-${g.pesoNeto}-${g.cantMoldes}-${g.kgsArenaMolde}`,
+      )
+      .join("|"),
+  ]);
 
   // Cargar reportes desde localStorage y limpiar expirados
   useEffect(() => {
@@ -188,9 +256,12 @@ export const CreateReportPage = () => {
         pesoNeto: "",
         totalBruto: "",
         totalNeto: "",
+        kgsArenaMolde: "",
+        kgsArenaMolde: "",
+        totalArenaCliente: "",
       },
     ]);
-    setRows([{ id: 0, material: "", kilos: "" }]);
+    setRows([{ id: 0, material: "", codigo: "", kilos: "" }]);
     setEditingReport(null);
     setIsReadOnly(false);
     // Si estaba editando, volver a la lista
@@ -214,57 +285,92 @@ export const CreateReportPage = () => {
     };
     const wsData = [
       [
-        null,
-        null,
-        null,
+
         "Fecha",
         reportData.generalInfo.fecha,
         "Operador",
         reportData.generalInfo.operador,
       ],
       [
-        null,
-        null,
-        null,
         "Colada",
         reportData.generalInfo.colada,
         "Material",
         reportData.generalInfo.material,
       ],
-      [],
-      [
-        "Cliente",
-        "Código",
-        "Descripción",
-        "ODP",
-        "Serial",
-        "Cant. Piezas",
-        "Cant. Moldes",
-        "Peso Bruto",
-        "Peso Neto",
-        "Total Bruto",
-        "Total Neto",
-      ],
-      ...reportData.pieceGrids.map((grid) => [
-        grid.cliente,
-        grid.codigo,
-        grid.descripcion,
-        grid.odp,
-        grid.serial,
-        grid.cantPiezas,
-        grid.cantMoldes,
-        grid.pesoBruto,
-        grid.pesoNeto,
-        grid.totalBruto,
-        grid.totalNeto,
+
+      ...reportData.pieceGrids.flatMap((grid) => [
+        [],
+        [
+          "Cliente",
+          "Código",
+          "Descripción",
+          "ODP",
+          "Serial",
+          "Cant. Piezas",
+        ],
+        [
+          grid.cliente,
+          grid.codigo,
+          grid.descripcion,
+          grid.odp,
+          grid.serial,
+          grid.cantPiezas,
+        ],
+        [
+          "Cant. Moldes",
+          "Kgs arena molde",
+          "Peso Bruto",
+          "Peso Neto",
+          "Total Bruto",
+          "Total Neto",
+        ],
+        [
+          grid.cantMoldes,
+          grid.kgsArenaMolde,
+          grid.pesoBruto,
+          grid.pesoNeto,
+          grid.totalBruto,
+          grid.totalNeto,
+        ],
       ]),
       [],
-      ["Parametros de Vaciado", null, "Observaciones", null, "Kgs arena molde", "Kgs arena total", "Escoria", "Fundido", "Bruto", "Neto", "Retorno"],
-      [reportData.generalInfo.params, null, reportData.generalInfo.observation, null, reportData.indicators.kgsArenaMolde, reportData.indicators.kgsArenaTotal, reportData.indicators.escoria, reportData.indicators.fundido, reportData.indicators.bruto, reportData.indicators.neto, reportData.indicators.retorno],
+      [
+        "Parametros de Vaciado",
+        null,
+        "Observaciones",
+      ],
+      [
+        reportData.generalInfo.params,
+        null,
+        reportData.generalInfo.observation,
+      ],
+      [],
+      [        
+        "Kgs arena molde",
+        "Kgs arena total",
+        "Escoria",
+      ],
+      [
+        reportData.indicators.kgsArenaMolde,
+        reportData.indicators.kgsArenaTotal,
+        reportData.indicators.escoria,
+      ],
+      [        
+        "Fundido",
+        "Bruto",
+        "Neto",
+        "Retorno",
+      ],
+      [
+        reportData.indicators.fundido,
+        reportData.indicators.bruto,
+        reportData.indicators.neto,
+        reportData.indicators.retorno,
+      ],
       [],
       ["Materia Prima"],
-      ["Material", "Kilos"],
-      ...reportData.rows.map((row) => [row.material, row.kilos]),
+      ["Material", "Código", "Kilos"],
+      ...reportData.rows.map((row) => [row.material, row.codigo, row.kilos]),
       [],
     ];
 
@@ -273,7 +379,7 @@ export const CreateReportPage = () => {
     const paramDataRowIndex = 5 + reportData.pieceGrids.length;
 
     // Calcular auto-fit para las columnas
-    const colWidths = Array(11).fill(0);
+    const colWidths = Array(13).fill(0);
     wsData.forEach((row, rowIndex) => {
       row.forEach((cell, colIndex) => {
         if (cell == null) return;
@@ -292,7 +398,7 @@ export const CreateReportPage = () => {
     });
 
     ws["!cols"] = colWidths.map((w, colIndex) => {
-      if (colIndex === 0) return { wch: 40 }; // A fijo
+      if (colIndex === 0) return { wch: 30 }; // A fijo
       if (colIndex === 1) return { wch: Math.max(15, (w || 10) + 2) }; // B min 15
       if (colIndex === 2) return { wch: 30 }; // C fijo
       return { wch: (w || 10) + 2 }; // Resto auto-fit
@@ -317,6 +423,7 @@ export const CreateReportPage = () => {
       "Peso Neto",
       "Total Bruto",
       "Total Neto",
+      "Total Arena Cliente",
       "Materia Prima",
       "Kilos",
       "Parametros de Vaciado",
@@ -338,6 +445,9 @@ export const CreateReportPage = () => {
         const isParamDataRow = cellAddress.r === paramDataRowIndex;
 
         const isTitle = titles.includes(ws[key].v);
+        if (isTitle) {
+          ws[key].v = ws[key].v.toUpperCase();
+        }
         ws[key].s = {
           font: {
             color: { rgb: "000000" },
@@ -369,7 +479,7 @@ export const CreateReportPage = () => {
   const addRow = () => {
     setRows((prev) => [
       ...prev,
-      { id: nextId.current++, material: "", kilos: "" },
+      { id: nextId.current++, material: "", codigo: "", kilos: "" },
     ]);
   };
 
@@ -434,6 +544,8 @@ export const CreateReportPage = () => {
         pesoNeto: "",
         totalBruto: "",
         totalNeto: "",
+        kgsArenaMolde: "",
+        totalArenaCliente: "",
       },
     ]);
   };
@@ -499,7 +611,7 @@ export const CreateReportPage = () => {
             className={`grid grid-cols-6 grid-rows-2 w-full gap-2 ${grid.id !== 0 ? "pt-4" : ""}`}
             id={grid.id === 0 ? "data-grid" : undefined}
           >
-            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 col-span-4">
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 col-span-3">
               <div className="text-neutral-950/40 text-sm">Cliente</div>
               <input
                 type="text"
@@ -513,7 +625,7 @@ export const CreateReportPage = () => {
               />
             </div>
 
-            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 justify-center col-span-2">
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 justify-center">
               <div className="text-neutral-950/40 text-sm">Codigo</div>
               <input
                 type="text"
@@ -521,21 +633,21 @@ export const CreateReportPage = () => {
                 onChange={(e) =>
                   updatePieceGrid(grid.id, "codigo", e.target.value)
                 }
-                placeholder="Código de la pieza"
+                placeholder="Código pieza"
                 className="font-semibold bg-transparent outline-none"
                 readOnly={isReadOnly}
               />
             </div>
 
-            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 col-span-4">
-              <div className="text-neutral-950/40 text-sm">Descripcion</div>
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 justify-center">
+              <div className="text-neutral-950/40 text-sm">Serial</div>
               <input
                 type="text"
-                value={grid.descripcion}
+                value={grid.serial}
                 onChange={(e) =>
-                  updatePieceGrid(grid.id, "descripcion", e.target.value)
+                  updatePieceGrid(grid.id, "serial", e.target.value)
                 }
-                placeholder="Descripción de la pieza"
+                placeholder="Número de serie"
                 className="font-semibold bg-transparent outline-none"
                 readOnly={isReadOnly}
               />
@@ -555,17 +667,52 @@ export const CreateReportPage = () => {
               />
             </div>
 
-            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 justify-center">
-              <div className="text-neutral-950/40 text-sm">Serial</div>
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-sky-400 col-span-4">
+              <div className="text-neutral-950/40 text-sm">Descripcion</div>
               <input
                 type="text"
-                value={grid.serial}
+                value={grid.descripcion}
                 onChange={(e) =>
-                  updatePieceGrid(grid.id, "serial", e.target.value)
+                  updatePieceGrid(grid.id, "descripcion", e.target.value)
                 }
-                placeholder="Número de serie"
+                placeholder="Descripción de la pieza"
                 className="font-semibold bg-transparent outline-none"
                 readOnly={isReadOnly}
+              />
+            </div>
+
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+              <div className="text-neutral-950/40 text-sm">Kgs arena molde</div>
+              <input
+                id="kgs-molde"
+                type="number"
+                min="0"
+                step="any"
+                value={grid.kgsArenaMolde}
+                onChange={(e) =>
+                  updatePieceGrid(grid.id, "kgsArenaMolde", e.target.value)
+                }
+                placeholder="0.00"
+                className="font-semibold bg-transparent outline-none text-left"
+                readOnly={isReadOnly}
+              />
+            </div>
+
+            <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+              <div className="text-neutral-950/40 text-sm" id="kgs-arena-total-cliente">
+                Kgs arena total
+              </div>
+              <input
+                type="number"
+                min="0"
+                step="any"
+                value={grid.totalArenaCliente}
+                onChange={(e) =>
+                  updatePieceGrid(grid.id, "totalArenaCliente", e.target.value)
+                }
+                placeholder="0.00"
+                className="font-semibold bg-transparent outline-none text-left"
+                readOnly={true}
               />
             </div>
 
@@ -632,7 +779,12 @@ export const CreateReportPage = () => {
             </div>
 
             <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400 justify-center">
-              <div className="text-neutral-950/40 text-sm">Total Bruto</div>
+              <div
+                className="text-neutral-950/40 text-sm"
+                id="total-bruto-cliente"
+              >
+                Total Bruto
+              </div>
               <input
                 type="number"
                 min="0"
@@ -643,12 +795,17 @@ export const CreateReportPage = () => {
                 }
                 placeholder="0.00"
                 className="font-semibold bg-transparent outline-none text-left"
-                readOnly={isReadOnly}
+                readOnly={true}
               />
             </div>
 
             <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400 justify-center">
-              <div className="text-neutral-950/40 text-sm">Total Neto</div>
+              <div
+                className="text-neutral-950/40 text-sm"
+                id="total-neto-cliente"
+              >
+                Total Neto
+              </div>
               <input
                 type="number"
                 min="0"
@@ -659,7 +816,7 @@ export const CreateReportPage = () => {
                 }
                 placeholder="0.00"
                 className="font-semibold bg-transparent outline-none text-left"
-                readOnly={isReadOnly}
+                readOnly={true}
               />
             </div>
           </div>
@@ -707,6 +864,9 @@ export const CreateReportPage = () => {
                   Material
                 </th>
                 <th className="tracking-tight font-medium text-neutral-950/70 py-2 px-4 text-left">
+                  Código
+                </th>
+                <th className="tracking-tight font-medium text-neutral-950/70 py-2 px-4 text-left">
                   Kilos
                 </th>
                 <th className="tracking-tight font-medium text-neutral-950/70 py-2 px-4">
@@ -730,6 +890,18 @@ export const CreateReportPage = () => {
                       }
                       onKeyDown={(e) => handleRowKeyDown(e, row)}
                       placeholder="Material"
+                      className="w-full bg-transparent outline-none"
+                      readOnly={isReadOnly}
+                    />
+                  </td>
+                  <td className="py-2 px-4">
+                    <input
+                      value={row.codigo}
+                      onChange={(e) =>
+                        updateRow(row.id, "codigo", e.target.value)
+                      }
+                      onKeyDown={(e) => handleRowKeyDown(e, row)}
+                      placeholder="Código"
                       className="w-full bg-transparent outline-none"
                       readOnly={isReadOnly}
                     />
@@ -775,23 +947,11 @@ export const CreateReportPage = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-4 grid-rows-2 w-full gap-2 py-4">
+      <div className="grid grid-cols-3 grid-rows-2 w-full gap-2 py-4">
         <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
-          <div className="text-neutral-950/40 text-sm">Kgs arena molde</div>
-          <input
-            type="number"
-            min="0"
-            step="any"
-            value={indicators.kgsArenaMolde}
-            onChange={(e) => updateIndicators("kgsArenaMolde", e.target.value)}
-            placeholder="0.00"
-            className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
-          />
-        </div>
-
-        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
-          <div className="text-neutral-950/40 text-sm">Kgs arena total</div>
+          <div className="text-neutral-950/40 text-sm" id="kgs-arena-total">
+            Kgs arena total
+          </div>
           <input
             type="number"
             min="0"
@@ -800,11 +960,14 @@ export const CreateReportPage = () => {
             onChange={(e) => updateIndicators("kgsArenaTotal", e.target.value)}
             placeholder="0.00"
             className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            readOnly={true}
           />
         </div>
 
-        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+        <div
+          className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400"
+          id="escoria-container"
+        >
           <div className="text-neutral-950/40 text-sm">Escoria</div>
           <input
             type="number"
@@ -814,11 +977,14 @@ export const CreateReportPage = () => {
             onChange={(e) => updateIndicators("escoria", e.target.value)}
             placeholder="0.00"
             className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            readOnly={true}
           />
         </div>
 
-        <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
+        <div
+          className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400"
+          id="fundido-container"
+        >
           <div className="text-neutral-950/40 text-sm">Fundido</div>
           <input
             type="number"
@@ -828,12 +994,14 @@ export const CreateReportPage = () => {
             onChange={(e) => updateIndicators("fundido", e.target.value)}
             placeholder="0.00"
             className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            readOnly={true}
           />
         </div>
 
         <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
-          <div className="text-neutral-950/40 text-sm">Bruto</div>
+          <div className="text-neutral-950/40 text-sm" id="bruto-container">
+            Bruto
+          </div>
           <input
             type="number"
             min="0"
@@ -842,12 +1010,14 @@ export const CreateReportPage = () => {
             onChange={(e) => updateIndicators("bruto", e.target.value)}
             placeholder="0.00"
             className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            readOnly={true}
           />
         </div>
 
         <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
-          <div className="text-neutral-950/40 text-sm">Neto</div>
+          <div className="text-neutral-950/40 text-sm" id="neto-container">
+            Neto
+          </div>
           <input
             type="number"
             min="0"
@@ -856,21 +1026,23 @@ export const CreateReportPage = () => {
             onChange={(e) => updateIndicators("neto", e.target.value)}
             placeholder="0.00"
             className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            readOnly={true}
           />
         </div>
 
         <div className="p-3 flex flex-col bg-white rounded-md small-shadow border-l-4 border-yellow-400">
-          <div className="text-neutral-950/40 text-sm">Retorno</div>
+          <div className="text-neutral-950/40 text-sm" id="retorno-container">
+            Retorno
+          </div>
           <input
             type="number"
             min="0"
             step="any"
             value={indicators.retorno}
             onChange={(e) => updateIndicators("retorno", e.target.value)}
-            placeholder="0.00"
-            className="font-semibold bg-transparent outline-none text-left"
-            readOnly={isReadOnly}
+            placeholder="0,00"
+            className="font-semibold bg-transparent outline-none text-left text-neutral-950 placeholder:text-neutral-950"
+            readOnly={true}
           />
         </div>
       </div>

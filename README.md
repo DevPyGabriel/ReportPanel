@@ -1,145 +1,145 @@
 # Panel de Reportes de Vaciado
 
-Este es un sistema de gestiÛn de reportes de vaciado desarrollado en React con Vite. Permite a los operadores autorizados crear, guardar y gestionar reportes de procesos de vaciado, incluyendo informaciÛn general, detalles de piezas y materia prima utilizada. El sistema incluye medidas de seguridad para proteger el acceso a los datos.
+Este es un sistema de gesti√≥n de reportes de vaciado desarrollado en React con Vite. Permite a los operadores autorizados crear, guardar y gestionar reportes de procesos de vaciado, incluyendo informaci√≥n general, detalles de piezas y materia prima utilizada. El sistema incluye medidas de seguridad para proteger el acceso a los datos.
 
-## CaracterÌsticas Principales
+## Caracter√≠sticas Principales
 
-- **AutenticaciÛn Segura**: Login requerido en cada sesiÛn con contraseÒa hasheada (SHA-256) configurada inicialmente por el usuario.
-- **CreaciÛn de Reportes**: Formulario intuitivo para ingresar datos de reportes, con campos para fecha, operador, material, piezas y materia prima.
-- **GestiÛn de Reportes**: Lista de reportes guardados con opciones de ediciÛn y eliminaciÛn.
-- **ExportaciÛn a Excel**: GeneraciÛn autom·tica de archivos Excel con formato profesional.
-- **Interfaz Responsiva**: DiseÒo moderno con Tailwind CSS para una experiencia de usuario fluida.
+- **Autenticaci√≥n Segura**: Login requerido en cada sesi√≥n con contrase√±a hasheada (SHA-256) configurada inicialmente por el usuario.
+- **Creaci√≥n de Reportes**: Formulario intuitivo para ingresar datos de reportes, con campos para fecha, operador, material, piezas y materia prima.
+- **Gesti√≥n de Reportes**: Lista de reportes guardados con opciones de edici√≥n y eliminaci√≥n.
+- **Exportaci√≥n a Excel**: Generaci√≥n autom√°tica de archivos Excel con formato profesional.
+- **Interfaz Responsiva**: Dise√±o moderno con Tailwind CSS para una experiencia de usuario fluida.
 - **Persistencia Local**: Almacenamiento de reportes en localStorage del navegador.
 
 ## Requisitos del Sistema
 
-- Node.js (versiÛn 16 o superior)
+- Node.js (versi√≥n 16 o superior)
 - Navegador web moderno con soporte para Web Crypto API (Chrome, Firefox, Edge, etc.)
 - Sistema operativo: Windows, macOS o Linux
 
-## InstalaciÛn
+## Instalaci√≥n
 
 1. Clona o descarga el repositorio.
 2. Navega al directorio del proyecto:
-   ```
+   \`\`\`
    cd ReportPanel
-   ```
+   \`\`\`
 3. Instala las dependencias:
-   ```
+   \`\`\`
    npm install
-   ```
+   \`\`\`
 4. Inicia el servidor de desarrollo:
-   ```
+   \`\`\`
    npm run dev
-   ```
+   \`\`\`
 5. Abre tu navegador y ve a `http://localhost:5173` (o el puerto indicado).
 
 ## Uso del Sistema
 
-### Primera ConfiguraciÛn
-Al abrir la aplicaciÛn por primera vez:
-1. Se mostrar· un formulario para configurar la contraseÒa inicial.
-2. Ingresa una contraseÒa segura (mÌnimo 6 caracteres) y confÌrmala.
-3. Haz clic en "Configurar" para guardar la contraseÒa hasheada.
+### Primera Configuraci√≥n
+Al abrir la aplicaci√≥n por primera vez:
+1. Se mostrar√° un formulario para configurar la contrase√±a inicial.
+2. Ingresa una contrase√±a segura (m√≠nimo 6 caracteres) y conf√≠rmala.
+3. Haz clic en "Configurar" para guardar la contrase√±a hasheada.
 
-### Inicio de SesiÛn
+### Inicio de Sesi√≥n
 Cada vez que accedas al sistema:
-1. Ingresa la contraseÒa configurada.
-2. Si es correcta, acceder·s al panel principal.
+1. Ingresa la contrase√±a configurada.
+2. Si es correcta, acceder√°s al panel principal.
 
-### CreaciÛn de Reportes
-1. Desde la p·gina principal ("Crear Reporte de Vaciado"):
-   - Completa la informaciÛn general: Fecha (se autocompleta con la fecha actual), Colada, Operador, Material.
-   - Agrega piezas: Cliente, CÛdigo, DescripciÛn, ODP, Serial, Cantidad de Piezas/Moldes, Pesos Bruto/Neso, Totales.
-   - Agrega materia prima: Material y Kilos (presiona Enter para agregar filas autom·ticamente).
-   - Ingresa observaciones y par·metros de vaciado.
+### Creaci√≥n de Reportes
+1. Desde la p√°gina principal ("Crear Reporte de Vaciado"):
+   - Completa la informaci√≥n general: Fecha (se autocompleta con la fecha actual), Colada, Operador, Material.
+   - Agrega piezas: Cliente, C√≥digo, Descripci√≥n, ODP, Serial, Cantidad de Piezas/Moldes, Pesos Bruto/Neto, Totales.
+   - Agrega materia prima: Material y Kilos (presiona Enter para agregar filas autom√°ticamente).
+   - Ingresa observaciones y par√°metros de vaciado.
 2. Guarda el reporte con "Guardar Reporte" (se almacena localmente).
 3. Opcional: Exporta a Excel con "Exportar a Excel".
 
-### GestiÛn de Reportes
+### Gesti√≥n de Reportes
 1. Ve a "Lista de Reportes".
-2. Ver·s una lista de reportes guardados con fecha de creaciÛn.
+2. Ver√°s una lista de reportes guardados con fecha de creaci√≥n.
 3. Opciones:
    - **Editar**: Modifica un reporte existente.
-   - **Eliminar**: Borra un reporte (con confirmaciÛn).
-4. Los reportes se guardan autom·ticamente en localStorage y expiran despuÈs de 72 horas.
+   - **Eliminar**: Borra un reporte (con confirmaci√≥n).
+4. Los reportes se guardan autom√°ticamente en localStorage y expiran despu√©s de 72 horas.
 
-### An·lisis de Reportes
-- P·gina en desarrollo para futuras funcionalidades de an·lisis.
+### An√°lisis de Reportes
+- P√°gina en desarrollo para futuras funcionalidades de an√°lisis.
 
-## Estructura del CÛdigo
+## Estructura del C√≥digo
 
 ### Archivos Principales
-- `src/routes/MainRoutes.jsx`: Maneja el enrutamiento y la autenticaciÛn global.
-- `src/pages/Login.jsx`: Componente de login con configuraciÛn inicial y verificaciÛn de contraseÒa.
-- `src/pages/CreateReportPage.jsx`: P·gina para crear y editar reportes.
+- `src/routes/MainRoutes.jsx`: Maneja el enrutamiento y la autenticaci√≥n global.
+- `src/pages/Login.jsx`: Componente de login con configuraci√≥n inicial y verificaci√≥n de contrase√±a.
+- `src/pages/CreateReportPage.jsx`: P√°gina para crear y editar reportes.
 - `src/pages/ReportListPage.jsx`: Lista de reportes guardados.
-- `src/layout/MainLayout.jsx`: Layout principal con sidebar y navegaciÛn.
+- `src/layout/MainLayout.jsx`: Layout principal con sidebar y navegaci√≥n.
 - `src/components/`: Componentes reutilizables (Icons, Sidebar, etc.).
 
-### TecnologÌas Utilizadas
+### Tecnolog√≠as Utilizadas
 - **React**: Framework para la interfaz de usuario.
-- **React Router**: NavegaciÛn entre p·ginas.
+- **React Router**: Navegaci√≥n entre p√°ginas.
 - **Vite**: Herramienta de desarrollo y build.
 - **Tailwind CSS**: Estilos CSS utilitarios.
-- **XLSX**: LibrerÌa para exportaciÛn a Excel.
-- **Web Crypto API**: Para hashing de contraseÒas.
+- **XLSX**: Librer√≠a para exportaci√≥n a Excel.
+- **Web Crypto API**: Para hashing de contrase√±as.
 
 ## Seguridad
-- **AutenticaciÛn**: ContraseÒa requerida al iniciar la aplicaciÛn, persistiendo durante la sesiÛn del navegador.
-- **Hashing**: ContraseÒas hasheadas con SHA-256, no almacenadas en texto plano.
-- **Validaciones**: Longitud mÌnima de contraseÒa, confirmaciÛn.
+- **Autenticaci√≥n**: Contrase√±a requerida al iniciar la aplicaci√≥n, persistiendo durante la sesi√≥n del navegador.
+- **Hashing**: Contrase√±as hasheadas con SHA-256, no almacenadas en texto plano.
+- **Validaciones**: Longitud m√≠nima de contrase√±a, confirmaci√≥n.
 - **Nota**: Este sistema es para uso local; no incluye backend para mayor seguridad en entornos remotos.
 
 ## Desarrollo
 Para contribuir o modificar:
 1. Instala dependencias: `npm install`
 2. Ejecuta en modo desarrollo: `npm run dev`
-3. Construye para producciÛn: `npm run build`
+3. Construye para producci√≥n: `npm run build`
 4. Linting: `npm run lint`
 
-## SoluciÛn de Problemas
-- **Error de login**: Aseg˙rate de que la contraseÒa sea correcta y que localStorage no estÈ corrupto.
+## Soluci√≥n de Problemas
+- **Error de login**: Aseg√∫rate de que la contrase√±a sea correcta y que localStorage no est√© corrupto.
 - **Reportes no se guardan**: Verifica que el navegador permita localStorage.
-- **ExportaciÛn falla**: Aseg˙rate de tener permisos para descargar archivos.
+- **Exportaci√≥n falla**: Aseg√∫rate de tener permisos para descargar archivos.
 
 ## Licencia
-Este proyecto es de uso interno. Consulta con el desarrollador para permisos de distribuciÛn.
+Este proyecto es de uso interno. Consulta con el desarrollador para permisos de distribuci√≥n.
 
 ---
 
 ## Manual de Usuario Detallado
 
-### IntroducciÛn
-El Panel de Reportes de Vaciado es una herramienta diseÒada para operadores de procesos de vaciado. Permite registrar de manera eficiente los detalles de cada operaciÛn, asegurando trazabilidad y facilidad de consulta.
+### Introducci√≥n
+El Panel de Reportes de Vaciado es una herramienta dise√±ada para operadores de procesos de vaciado. Permite registrar de manera eficiente los detalles de cada operaci√≥n, asegurando trazabilidad y facilidad de consulta.
 
-### NavegaciÛn
-- **Sidebar**: Accede a "Crear Reporte", "Lista de Reportes" y "An·lisis" (en desarrollo).
-- **Encabezados**: Cada p·gina tiene un tÌtulo descriptivo.
+### Navegaci√≥n
+- **Sidebar**: Accede a "Crear Reporte", "Lista de Reportes" y "An√°lisis" (en desarrollo).
+- **Encabezados**: Cada p√°gina tiene un t√≠tulo descriptivo.
 
 ### Campos del Reporte
-- **InformaciÛn General**:
-  - Fecha: Autom·tica, editable.
-  - Colada: CÛdigo de la colada (ej: 56B-026).
+- **Informaci√≥n General**:
+  - Fecha: Autom√°tica, editable.
+  - Colada: C√≥digo de la colada (ej: 56B-026).
   - Operador: Nombre (prellenado con "Adelis Vielma").
   - Material: Tipo de material utilizado.
 - **Piezas**:
-  - Cliente, CÛdigo, DescripciÛn, ODP, Serial.
-  - Cantidades y pesos: Campos numÈricos con validaciÛn.
-  - M˙ltiples piezas: Agrega grids din·micamente.
+  - Cliente, C√≥digo, Descripci√≥n, ODP, Serial.
+  - Cantidades y pesos: Campos num√©ricos con validaci√≥n.
+  - M√∫ltiples piezas: Agrega grids din√°micamente.
 - **Materia Prima**:
   - Tabla editable: Agrega filas con Enter.
-  - Material y Kilos.
-- **Observaciones y Par·metros**: Campos de texto libre.
+  - Material y kilos.
+- **Observaciones y Par√°metros**: Campos de texto libre.
 
-### ExportaciÛn
-- Genera un archivo Excel con formato tabular, incluyendo headers y bordes.
-- Se descarga autom·ticamente al hacer clic en "Exportar a Excel".
+### Exportaci√≥n
+- Genera un archivo Excel con formato tabular, incluyendo encabezados y bordes.
+- Se descarga autom√°ticamente al hacer clic en "Exportar a Excel".
 
-### GestiÛn de Datos
+### Gesti√≥n de Datos
 - **Almacenamiento**: localStorage del navegador.
-- **ExpiraciÛn**: Reportes se eliminan autom·ticamente despuÈs de 72 horas.
+- **Expiraci√≥n**: Reportes se eliminan autom√°ticamente despu√©s de 72 horas.
 - **Backup**: Recomendado exportar reportes importantes.
 
 ### Soporte
-Para soporte tÈcnico, contacta al equipo de desarrollo.
+Para soporte t√©cnico, contacta al equipo de desarrollo.
